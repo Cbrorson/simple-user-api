@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="585ff3f5-9716-4c5d-aa04-f46b1d751418" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="simple-user-apiFlow" doc:id="7b34d1e4-bb40-4ce9-ad4f-7f90c66db4b0" >
+		<http:listener doc:name="Listener" doc:id="6c913be3-8ac3-4f18-992b-3cbc4883db77" path="/api/*" config-ref="HTTP_Listener_config"/>
+        
+<set-payload value="#[output application/json --- [{'id': 1, 'name': 'John'}, {'id': 2, 'name': 'Jane'}]]" doc:name="Set Response"/>
+
+        <ee:transform doc:name="Transform Message">
+            <ee:message >
+                <ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+</mule>
+
