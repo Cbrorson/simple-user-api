@@ -10,19 +10,47 @@ http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/cu
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="585ff3f5-9716-4c5d-aa04-f46b1d751418" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
-	<flow name="simple-user-apiFlow" doc:id="7b34d1e4-bb40-4ce9-ad4f-7f90c66db4b0" >
-		<http:listener doc:name="Listener" doc:id="6c913be3-8ac3-4f18-992b-3cbc4883db77" path="/api/*" config-ref="HTTP_Listener_config"/>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="cea723b4-d113-4856-bfdc-227e815b770f" >
+		<db:my-sql-connection host="127.0.0.1" port="3306" user="root" password="javaintegration" database="userapi" />
+	</db:config>
+	<flow name="simple-user-apiFlow1" doc:id="88eaca39-6be1-430f-be04-e3cac697a071" >
+		<http:listener doc:name="Database" doc:id="ce2051c7-f071-4872-abdc-a4fedcfd239f" config-ref="HTTP_Listener_config" path="/databaseSelect"/>
+		<db:select doc:name="Select" doc:id="4bbff649-9968-469b-8b1e-f74855af55f5" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT * FROM userapi.user]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="cfb8e0b2-3663-4a95-81f9-fc859c4d64e1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map
+    {
+    	"name": $.name,
+        "id": $.id
         
-<set-payload value="#[output application/json --- [{'id': 1, 'name': 'John'}, {'id': 2, 'name': 'Jane'}]]" doc:name="Set Response"/>
-
-        <ee:transform doc:name="Transform Message">
-            <ee:message >
-                <ee:set-payload ><![CDATA[%dw 2.0
+    }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="simple-user-apiFlow" doc:id="f198311d-b409-4520-b232-aaa3cb4bb86c" >
+		<http:listener doc:name="Listener" doc:id="5f89cf21-13b0-4085-913e-b0abcd52e8e1" config-ref="HTTP_Listener_config" path="/databaseInsert"/>
+		<db:insert doc:name="Insert" doc:id="d1512279-5e50-4e13-8990-fdbcc1ed760b" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO userapi.user (id,name) VALUES (:id,:name);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id : payload.userId,
+	name: payload.userFirstName
+	
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="8b967dae-390e-42e9-858b-ce8656ca6c8b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 payload]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
-    </flow>
+			</ee:message>
+		</ee:transform>
+	</flow>
+
 </mule>
 
